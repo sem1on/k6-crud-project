@@ -1,0 +1,31 @@
+name: PR Performance Check
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  perf-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      
+      - name: Run test
+        run: |
+          k6 run --summary-export=pr-results.json k6/scripts/json-server-test.js
+      
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('pr-results.json', 'utf8'));
+            const p95 = results.metrics.http_req_duration.values['p(95)'].toFixed(2);
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📊 Performance Test Results\n\n**95th percentile response time:** ${p95}ms\n\n✅ Test passed`
+            });

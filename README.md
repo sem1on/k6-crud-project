@@ -1,5 +1,11 @@
 # k6 CRUD Performance Testing Project
 
+![Smoke Test](https://github.com/sem1on/k6-crud-project/actions/workflows/smoke-test.yml/badge.svg)
+![Load Test](https://github.com/sem1on/k6-crud-project/actions/workflows/load-test.yml/badge.svg)
+
+
+# k6 CRUD Performance Testing Project
+
 ## День 1: Начало проекта
 
 **Дата:** $(Get-Date -Format "dd.MM.yyyy")
