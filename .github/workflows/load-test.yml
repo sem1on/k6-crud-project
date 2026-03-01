@@ -10,11 +10,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      # Устанавливаем Node.js (нужен для json-server)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      # Устанавливаем json-server
+      - name: Install json-server
+        run: npm install -g json-server
+      
+      # Создаём тестовые данные
+      - name: Create db.json
+        run: |
+          echo '{
+            "items": [
+              { "id": 1, "name": "Laptop" },
+              { "id": 2, "name": "Mouse" },
+              { "id": 3, "name": "Keyboard" }
+            ]
+          }' > db.json
+      
+      # Запускаем json-server в фоне
+      - name: Start json-server
+        run: |
+          json-server --host 0.0.0.0 --port 3333 db.json &
+          sleep 3
+      
+      # Устанавливаем k6
       - uses: grafana/setup-k6-action@v1
       
+      # Проверяем, что API отвечает
+      - name: Check API
+        run: |
+          curl http://localhost:3333/items || echo "API not ready"
+          sleep 2
+      
+      # Запускаем тест
       - name: Run load test
         run: k6 run --summary-export=results.json k6/scripts/json-server-test.js
       
+      # Сохраняем результаты
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
